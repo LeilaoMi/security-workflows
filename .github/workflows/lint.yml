@@ -2,6 +2,10 @@ name: Lint
 # Shared lint (phase 2, 2026-11-10). Callers opt in per language:
 #   with: { biome: true }   -> biome ci (config: repo biome.json)
 #   with: { ruff: true }    -> ruff check (config: repo ruff.toml / pyproject)
+#   with: { basedpyright: true } -> type check; only errors not in
+#     .basedpyright/baseline.json fail (deps are NOT installed, so the
+#     baseline must be written the same way: basedpyright --writebaseline
+#     against an empty venv).
 on:
   workflow_call:
     inputs:
@@ -9,6 +13,9 @@ on:
         type: boolean
         default: false
       ruff:
+        type: boolean
+        default: false
+      basedpyright:
         type: boolean
         default: false
 permissions:
@@ -38,3 +45,16 @@ jobs:
         with:
           version: 0.17.4
           args: check --output-format=github
+  basedpyright:
+    if: inputs.basedpyright
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - run: pip install basedpyright==1.40.2
+      - run: basedpyright
