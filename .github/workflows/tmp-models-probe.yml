@@ -9,4 +9,4 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          curl -sS https://models.github.ai/inference/chat/completions -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/json" -d '{"model":"openai/gpt-4.1-mini","messages":[{"role":"user","content":"reply OK"}],"max_tokens":5}' | head -c 400
+          curl -sS https://models.github.ai/inference/chat/completions -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/json" -d '{"model":"openai/gpt-4.1-mini","messages":[{"role":"user","content":"reply OK"}],"max_tokens":5}' -o r.json -w "HTTP %{http_code}\n"; jq -c "{model, content: .choices[0].message.content, err: .error}" r.json
